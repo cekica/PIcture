@@ -65,6 +65,14 @@ class GeneratorEngine:
         if img.have_Enough_fdta_for_BW_mode() :
             img.save_picture_BW()
 
+    """ Run the engine one time in color mode
+    """
+    def run_one_shot_bw(self):
+        img = PI_image(self.out_file+"/"+self.template_name+"-colored.png", self.source)
+        img.setSize(self.width, self.height)
+        #if img.have_Enough_fdta_for_BW_mode() :
+        img.save_picture()
+
 class PI_image:
 
     # Initialisation of the PI_Image
@@ -132,10 +140,30 @@ class PI_image:
         pixel= 0
         data = np.zeros( (self.width, self.height, 3), dtype=np.uint8)
         print(self.source)
-        for y in range(0, self.height):
-            for x in range(0, self.width) :
-                color = (1 - int(self.source[pixel]))*255
-                data[x , y] = [color, color, color]
+        x = y = 0
+        pos = c = c1 = c2 = c3 = 0
+        tot = self.width * self.height
+        c = 1
+        while pos < tot :
+            pixel = self.source[pos]
+            if   c == 1 :
+                c1 = int(int(pixel)*0.1*255)
+            elif c == 2 :
+                c2 = int(int(pixel)*0.1*255)
+            elif c == 3 :
+                c3 = int(int(pixel)*0.1*255)
+
+            c += 1
+            if c == 4:
+                c = 1
+                data[x, y] = [c1, c2, c3]
+                c1 = c2 = c3 = 0
+
+            pos += 1
+            x += 1
+            if x == 1024 :
+                x = 0
+                y += 1
 
         export = Image.fromarray(data)
         export.save(self.output)
